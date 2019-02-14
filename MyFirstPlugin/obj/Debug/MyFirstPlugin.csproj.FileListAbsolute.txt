@@ -1,5 +1,0 @@
-C:\Users\lreimer\OneDrive\Documents\Visual Studio 2015\Projects\MyFirstPlugin\MyFirstPlugin\obj\Debug\MyFirstPlugin.csprojResolveAssemblyReference.cache
-C:\Users\lreimer\OneDrive\Documents\Visual Studio 2015\Projects\MyFirstPlugin\MyFirstPlugin\bin\Debug\MyFirstPlugin.dll
-C:\Users\lreimer\OneDrive\Documents\Visual Studio 2015\Projects\MyFirstPlugin\MyFirstPlugin\bin\Debug\MyFirstPlugin.pdb
-C:\Users\lreimer\OneDrive\Documents\Visual Studio 2015\Projects\MyFirstPlugin\MyFirstPlugin\obj\Debug\MyFirstPlugin.dll
-C:\Users\lreimer\OneDrive\Documents\Visual Studio 2015\Projects\MyFirstPlugin\MyFirstPlugin\obj\Debug\MyFirstPlugin.pdb
