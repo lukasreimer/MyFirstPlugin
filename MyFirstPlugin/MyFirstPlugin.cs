@@ -26,7 +26,6 @@ namespace MyFirstPlugin
             UIApplication uiapp = commandData.Application;  // http://www.revitapidocs.com/2018/51ca80e2-3e5f-7dd2-9d95-f210950c72ae.htm
             Document doc = uiapp.ActiveUIDocument.Document;  // http://www.revitapidocs.com/2018/db03274b-a107-aa32-9034-f3e0df4bb1ec.htm
 
-
             //Define a reference Object to accept the pick result
             Reference pickedref = null;  // http://www.revitapidocs.com/2018/d28155ae-817b-1f31-9c3f-c9c6a28acc0d.htm
 
@@ -68,29 +67,69 @@ namespace MyFirstPlugin
     {
         public Result Execute(ExternalCommandData commandData, ref string message, ElementSet elements)
         {
-            
-            //Get application and documnet objects
+            // Get application and documnet objects
             UIApplication uiapp = commandData.Application;
             Document doc = uiapp.ActiveUIDocument.Document;  // could be null if no project is open!  
 
             try
             {
-                //Define a reference Object to accept the pick result
+                // Define a reference Object to accept the pick result
                 Reference pickedref = null;
 
-                //Pick a group
+                // Pick a group
                 Selection sel = uiapp.ActiveUIDocument.Selection;
                 GroupPickFilter selFilter = new GroupPickFilter();
                 pickedref = sel.PickObject(ObjectType.Element, selFilter, "Please select a group");  // could be terminated by the user!, user could select non group objects
                 Element elem = doc.GetElement(pickedref);
                 Group group = elem as Group;  // could be null if type cast fails (elem is not a group)!
 
-                //Pick point
+                // Pick point
                 XYZ point = sel.PickPoint("Please pick a point to place group");  // could be terminated by the user!
-
-                //Place the group
+                
+                // Place the group
                 Transaction trans = new Transaction(doc);
-                trans.Start("PlaceGroupCommand");
+                trans.Start("EnhancedPlaceGroupCommand");
+                doc.Create.PlaceGroup(point, group.GroupType);
+                trans.Commit();
+                
+                // Return the result
+                return Result.Succeeded;
+            }
+            catch (Autodesk.Revit.Exceptions.OperationCanceledException)  // if the user right clicks or presses ESC button
+            {
+                return Result.Cancelled;
+            }
+            catch (Exception ex)
+            {
+                message = ex.Message;
+                return Result.Failed;
+            }
+        }
+    }
+
+    [Transaction(TransactionMode.Manual)]
+    [Regeneration(RegenerationOption.Manual)]
+    public class ConsiderablyEnhancedPlaceGroupCommand : IExternalCommand
+    {
+        public Result Execute(ExternalCommandData commandData, ref string message, ElementSet elements)
+        {
+            UIApplication uiapp = commandData.Application;
+            Document doc = uiapp.ActiveUIDocument.Document;
+
+            try
+            {
+                Reference pickedref = null;
+
+                Selection sel = uiapp.ActiveUIDocument.Selection;
+                GroupPickFilter selFilter = new GroupPickFilter();
+                pickedref = sel.PickObject(ObjectType.Element, selFilter, "Please select a group");
+                Element elem = doc.GetElement(pickedref);
+                Group group = elem as Group;
+
+                XYZ point = sel.PickPoint("Please pick a point to place group");
+
+                Transaction trans = new Transaction(doc);
+                trans.Start("ConsiderablyEnhancedPlaceGroupCommand");
                 doc.Create.PlaceGroup(point, group.GroupType);
                 trans.Commit();
 
@@ -105,6 +144,13 @@ namespace MyFirstPlugin
                 message = ex.Message;
                 return Result.Failed;
             }
+        }
+
+        public XYZ GetElementCenter(Element elem)
+        {
+            BoundingBoxXYZ bounding = elem.get_BoundingBox(null);
+            XYZ center = (bounding.Max + bounding.Min) * 0.5;
+            return center;
         }
     }
 }
