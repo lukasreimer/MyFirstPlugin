@@ -12,6 +12,7 @@ using Autodesk.Revit.UI.Selection;
 
 namespace MyFirstPlugin
 {
+    // Lesson 1: Place Group at a Particular Point
     [Transaction(TransactionMode.Manual)]  // http://www.revitapidocs.com/2018/84254a1f-7bba-885a-ce65-e68fc238fddb.htm
     [Regeneration(RegenerationOption.Manual)]  // http://www.revitapidocs.com/2018/26239bbb-d639-d306-cc43-cc2ec975b822.htm
     public class PlaceGroupCommand : IExternalCommand  // http://www.revitapidocs.com/2018/ad99887e-db50-bf8f-e4e6-2fb86082b5fb.htm
@@ -48,6 +49,7 @@ namespace MyFirstPlugin
     }
 
 
+    // Lesson 5: Simple Selection of a Group
     public class GroupPickFilter : ISelectionFilter
     {
         public bool AllowElement(Element elem)
@@ -60,7 +62,6 @@ namespace MyFirstPlugin
             return false;
         }
     }
-
 
     [Transaction(TransactionMode.Manual)]
     [Regeneration(RegenerationOption.Manual)]
@@ -109,6 +110,7 @@ namespace MyFirstPlugin
     }
 
 
+    // Lesson 6: Working with Room Geometry
     [Transaction(TransactionMode.Manual)]
     [Regeneration(RegenerationOption.Manual)]
     public class ConsiderablyEnhancedPlaceGroupCommand : IExternalCommand
@@ -194,6 +196,7 @@ namespace MyFirstPlugin
     }
 
 
+    // Lesseon 7: Final Plugin
     public class RoomPickFilter : ISelectionFilter
     {
         public bool AllowElement(Element element)
@@ -207,39 +210,37 @@ namespace MyFirstPlugin
         }
     }
 
-
     [Transaction(TransactionMode.Manual)]
     [Regeneration(RegenerationOption.Manual)]
     public class MostEnhancedPlaceGroupCommand : IExternalCommand
     {
+        // Main method for executing the command
+        // =====================================
         public Result Execute(ExternalCommandData commandData, ref string message, ElementSet elements)
         {
+            // setup the main handles for the application and the active document
             UIApplication uiapp = commandData.Application;
             Document doc = uiapp.ActiveUIDocument.Document;
 
-            try
+            try  // business logic
             {
-                Reference pickedref = null;
-
+                // Ask the user to select a group
                 Selection sel = uiapp.ActiveUIDocument.Selection;
                 GroupPickFilter selFilter = new GroupPickFilter();
-                pickedref = sel.PickObject(ObjectType.Element, selFilter, "Please select a group");
+                Reference pickedref = sel.PickObject(ObjectType.Element, selFilter, "Please select a group");
                 Element elem = doc.GetElement(pickedref);
                 Group group = elem as Group;  // should be safe after using the GroupPickFilter on the Selection
 
+                // Calculate the center location of the room the group is located in
                 XYZ origin = GetElementCenter(group);
                 Room room = GetRoomOfGroup(doc, origin);
                 XYZ sourceCenter = GetRoomCenter(room);
-
-                /*
-                string coords = $"X = {sourceCenter.X}\nY = {sourceCenter.Y}\nZ = {sourceCenter.Z}";
-                TaskDialog.Show("Source Room Center", coords);
-                */
 
                 // Ask the user to pick target rooms
                 RoomPickFilter roomPickFilter = new RoomPickFilter();
                 IList<Reference> rooms = sel.PickObjects(ObjectType.Element, roomPickFilter, "Select target rooms for duplicating the group");
 
+                // Place groups of the previously selected types in the selected target rooms
                 Transaction trans = new Transaction(doc);
                 trans.Start("MostEnhancedPlaceGroupCommand");
                 PlaceFurnitureInRooms(doc, rooms, sourceCenter, group.GroupType, origin);
@@ -258,14 +259,16 @@ namespace MyFirstPlugin
             }
         }
 
-        public XYZ GetElementCenter(Element elem)
+        // Private helper methods implementing core parts of the business logic
+        // ====================================================================
+        private XYZ GetElementCenter(Element elem)
         {
             BoundingBoxXYZ bounding = elem.get_BoundingBox(null);
             XYZ center = (bounding.Max + bounding.Min) * 0.5;
             return center;
         }
 
-        Room GetRoomOfGroup(Document doc, XYZ point)
+        private Room GetRoomOfGroup(Document doc, XYZ point)
         {
             FilteredElementCollector collector = new FilteredElementCollector(doc);
             collector.OfCategory(BuiltInCategory.OST_Rooms);
@@ -284,7 +287,7 @@ namespace MyFirstPlugin
             return room;
         }
 
-        public XYZ GetRoomCenter(Room room)
+        private XYZ GetRoomCenter(Room room)
         {
             XYZ boundCenter = GetElementCenter(room);
             LocationPoint locPt = (LocationPoint)room.Location;
@@ -292,10 +295,10 @@ namespace MyFirstPlugin
             return roomCenter;
         }
 
-        public void PlaceFurnitureInRooms(Document doc, IList<Reference> rooms, XYZ sourceCenter, GroupType groupType, XYZ groupOrigin)
+        private void PlaceFurnitureInRooms(Document doc, IList<Reference> rooms, XYZ sourceCenter, GroupType groupType, XYZ groupOrigin)
         {
-            XYZ offset = groupOrigin - sourceCenter;
-            XYZ offsetXY = new XYZ(offset.X, offset.Y, 0);
+            XYZ offset = groupOrigin - sourceCenter;  // 3d offset
+            XYZ offsetXY = new XYZ(offset.X, offset.Y, 0);  // pure horizontal 2d offset
             foreach (Reference reference in rooms)
             {
                 Room roomTarget = doc.GetElement(reference) as Room;
