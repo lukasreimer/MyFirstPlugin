@@ -12,8 +12,6 @@ using Autodesk.Revit.UI.Selection;
 
 namespace MyFirstPlugin
 {
-    // [TransactionAttribute(TransactionMode.Manual)]  // name can be simplified
-    // [RegenerationAttribute(RegenerationOption.Manual)]  // name can be simplified
     [Transaction(TransactionMode.Manual)]  // http://www.revitapidocs.com/2018/84254a1f-7bba-885a-ce65-e68fc238fddb.htm
     [Regeneration(RegenerationOption.Manual)]  // http://www.revitapidocs.com/2018/26239bbb-d639-d306-cc43-cc2ec975b822.htm
     public class PlaceGroupCommand : IExternalCommand  // http://www.revitapidocs.com/2018/ad99887e-db50-bf8f-e4e6-2fb86082b5fb.htm
@@ -49,6 +47,7 @@ namespace MyFirstPlugin
         }
     }
 
+
     public class GroupPickFilter : ISelectionFilter
     {
         public bool AllowElement(Element elem)
@@ -61,6 +60,7 @@ namespace MyFirstPlugin
             return false;
         }
     }
+
 
     [Transaction(TransactionMode.Manual)]
     [Regeneration(RegenerationOption.Manual)]
@@ -107,6 +107,7 @@ namespace MyFirstPlugin
             }
         }
     }
+
 
     [Transaction(TransactionMode.Manual)]
     [Regeneration(RegenerationOption.Manual)]
@@ -189,6 +190,121 @@ namespace MyFirstPlugin
             LocationPoint locPt = (LocationPoint)room.Location;
             XYZ roomCenter = new XYZ(boundCenter.X, boundCenter.Y, locPt.Point.Z);
             return roomCenter;
+        }
+    }
+
+
+    public class RoomPickFilter : ISelectionFilter
+    {
+        public bool AllowElement(Element element)
+        {
+            return (element.Category.Id.IntegerValue.Equals((int)BuiltInCategory.OST_Rooms));
+        }
+
+        public bool AllowReference(Reference reference, XYZ position)
+        {
+            return false;
+        }
+    }
+
+
+    [Transaction(TransactionMode.Manual)]
+    [Regeneration(RegenerationOption.Manual)]
+    public class MostEnhancedPlaceGroupCommand : IExternalCommand
+    {
+        public Result Execute(ExternalCommandData commandData, ref string message, ElementSet elements)
+        {
+            UIApplication uiapp = commandData.Application;
+            Document doc = uiapp.ActiveUIDocument.Document;
+
+            try
+            {
+                Reference pickedref = null;
+
+                Selection sel = uiapp.ActiveUIDocument.Selection;
+                GroupPickFilter selFilter = new GroupPickFilter();
+                pickedref = sel.PickObject(ObjectType.Element, selFilter, "Please select a group");
+                Element elem = doc.GetElement(pickedref);
+                Group group = elem as Group;  // should be safe after using the GroupPickFilter on the Selection
+
+                XYZ origin = GetElementCenter(group);
+                Room room = GetRoomOfGroup(doc, origin);
+                XYZ sourceCenter = GetRoomCenter(room);
+
+                /*
+                string coords = $"X = {sourceCenter.X}\nY = {sourceCenter.Y}\nZ = {sourceCenter.Z}";
+                TaskDialog.Show("Source Room Center", coords);
+                */
+
+                // Ask the user to pick target rooms
+                RoomPickFilter roomPickFilter = new RoomPickFilter();
+                IList<Reference> rooms = sel.PickObjects(ObjectType.Element, roomPickFilter, "Select target rooms for duplicating the group");
+
+                Transaction trans = new Transaction(doc);
+                trans.Start("MostEnhancedPlaceGroupCommand");
+                PlaceFurnitureInRooms(doc, rooms, sourceCenter, group.GroupType, origin);
+                trans.Commit();
+
+                return Result.Succeeded;
+            }
+            catch (Autodesk.Revit.Exceptions.OperationCanceledException)
+            {
+                return Result.Cancelled;
+            }
+            catch (Exception ex)
+            {
+                message = ex.Message;
+                return Result.Failed;
+            }
+        }
+
+        public XYZ GetElementCenter(Element elem)
+        {
+            BoundingBoxXYZ bounding = elem.get_BoundingBox(null);
+            XYZ center = (bounding.Max + bounding.Min) * 0.5;
+            return center;
+        }
+
+        Room GetRoomOfGroup(Document doc, XYZ point)
+        {
+            FilteredElementCollector collector = new FilteredElementCollector(doc);
+            collector.OfCategory(BuiltInCategory.OST_Rooms);
+            Room room = null;
+            foreach (Element elem in collector)
+            {
+                room = elem as Room;  // may fail, return null
+                if (room != null)
+                {
+                    if (room.IsPointInRoom(point))
+                    {
+                        break;  // out of the foreach loop
+                    }
+                }
+            }
+            return room;
+        }
+
+        public XYZ GetRoomCenter(Room room)
+        {
+            XYZ boundCenter = GetElementCenter(room);
+            LocationPoint locPt = (LocationPoint)room.Location;
+            XYZ roomCenter = new XYZ(boundCenter.X, boundCenter.Y, locPt.Point.Z);
+            return roomCenter;
+        }
+
+        public void PlaceFurnitureInRooms(Document doc, IList<Reference> rooms, XYZ sourceCenter, GroupType groupType, XYZ groupOrigin)
+        {
+            XYZ offset = groupOrigin - sourceCenter;
+            XYZ offsetXY = new XYZ(offset.X, offset.Y, 0);
+            foreach (Reference reference in rooms)
+            {
+                Room roomTarget = doc.GetElement(reference) as Room;
+                if (roomTarget != null)
+                {
+                    XYZ roomCenter = GetRoomCenter(roomTarget);
+                    Group group = doc.Create.PlaceGroup(roomCenter + offsetXY, groupType);
+                }
+            }
         }
     }
 }
