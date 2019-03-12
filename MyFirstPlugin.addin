@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Help: http://help.autodesk.com/view/RVT/2018/ENU/?guid=Revit_API_Revit_API_Developers_Guide_Introduction_Add_In_Integration_Add_in_Registration_html -->
+<!-- To be moved to: C:\ProgramData\Autodesk\Revit\Addins\201x\ or  C:\Users\<username>\AppData\Roaming\Autodesk\Revit\Addins\201x\ -->
+<RevitAddIns>
+  <AddIn Type="Command">
+    <Assembly>C:\Users\lreimer\OneDrive\Documents\visual studio 2015\Projects\MyFirstPlugin\MyFirstPlugin\bin\Debug\MyFirstPlugin.dll</Assembly>
+    <FullClassName>MyFirstPlugin.PlaceGroupCommand</FullClassName>
+    <AddInId>ebc9fdde-d52d-4595-b0e7-1d357bfb72b9</AddInId>
+    <Text>MyFirstPlugin Lab 1 - PlaceGroup</Text>
+    <Description>Places the Group at other Points</Description>
+    <VisibilityMode>AlwaysVisible</VisibilityMode>
+    <VendorId>BH.LR</VendorId>
+    <VendorDescription>BuroHappold, LR</VendorDescription>
+  </AddIn>
+
+  <AddIn Type="Command">
+    <Assembly>C:\Users\lreimer\OneDrive\Documents\visual studio 2015\Projects\MyFirstPlugin\MyFirstPlugin\bin\Debug\MyFirstPlugin.dll</Assembly>
+    <FullClassName>MyFirstPlugin.EnhancedPlaceGroupCommand</FullClassName>
+    <AddInId>cb941231-e82c-4741-abf9-d325e7159eb0</AddInId>
+    <Text>MyFirstPlugin Lab 5 - PlaceGroup</Text>
+    <Description>Places the Group at other Points with Enhanced Selection</Description>
+    <VisibilityMode>AlwaysVisible</VisibilityMode>
+    <VendorId>BH.LR</VendorId>
+    <VendorDescription>BuroHappold, LR</VendorDescription>
+  </AddIn>
+
+  <AddIn Type="Command">
+    <Assembly>C:\Users\lreimer\OneDrive\Documents\visual studio 2015\Projects\MyFirstPlugin\MyFirstPlugin\bin\Debug\MyFirstPlugin.dll</Assembly>
+    <FullClassName>MyFirstPlugin.ConsiderablyEnhancedPlaceGroupCommand</FullClassName>
+    <AddInId>e81595d2-b187-40c3-b214-92afccb62250</AddInId>
+    <Text>MyFirstPlugin Lab 6 - PlaceGroup</Text>
+    <Description>Places the Group at other Points with Location Output</Description>
+    <VisibilityMode>AlwaysVisible</VisibilityMode>
+    <VendorId>BH.LR</VendorId>
+    <VendorDescription>BuroHappold, LR</VendorDescription>
+  </AddIn>
+
+  <AddIn Type="Command">
+    <Assembly>C:\Users\lreimer\OneDrive\Documents\visual studio 2015\Projects\MyFirstPlugin\MyFirstPlugin\bin\Debug\MyFirstPlugin.dll</Assembly>
+    <FullClassName>MyFirstPlugin.MostEnhancedPlaceGroupCommand</FullClassName>
+    <AddInId>d902ae3f-283a-4f8d-a9fb-6bea09570622</AddInId>
+    <Text>MyFirstPlugin Lab 7 - PlaceGroup</Text>
+    <Description>Places the Group in Other Rooms</Description>
+    <VisibilityMode>AlwaysVisible</VisibilityMode>
+    <VendorId>BH.LR</VendorId>
+    <VendorDescription>BuroHappold, LR</VendorDescription>
+  </AddIn>
+</RevitAddIns>
