@@ -52,7 +52,10 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="MyFirstPlugin.cs" />
+    <Compile Include="MyFirstPlugin_Lab7.cs" />
+    <Compile Include="MyFirstPlugin_Lab6.cs" />
+    <Compile Include="MyFirstPlugin_Lab5.cs" />
+    <Compile Include="MyFirstPlugin_Lab1.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
